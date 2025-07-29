@@ -6,12 +6,13 @@
   <title>Quiz BRITA – Eau & Écologie</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-blue-50 min-h-screen flex items-center justify-center p-6">
-  <div class="max-w-xl w-full bg-white shadow-lg rounded-xl p-6 space-y-4">
-    <h1 class="text-2xl font-bold text-center text-blue-700">🌍 Quiz – L’eau & l’écologie</h1>
-    <div id="quiz" class="space-y-4"></div>
-    <div id="feedback" class="text-center text-sm font-medium text-green-600"></div>
-    <div id="score" class="text-center font-bold text-lg mt-4 hidden"></div>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
+  <div class="max-w-2xl w-full bg-white shadow-xl rounded-xl p-6 space-y-4 text-center relative">
+    <h1 class="text-2xl font-bold text-blue-700">🌍 Quiz – L’eau & l’écologie</h1>
+    <div id="timer" class="text-3xl font-bold text-purple-600 absolute top-4 left-4">20</div>
+    <div id="quiz" class="space-y-6"></div>
+    <div id="feedback" class="text-base font-medium text-green-600"></div>
+    <div id="score" class="font-bold text-lg mt-4 hidden"></div>
     <button id="nextBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full hidden">Suivant</button>
   </div>
 
@@ -21,13 +22,13 @@
         question: "Laquelle de ces options est la plus écologique ?",
         options: ["Eau filtrée", "Eau du robinet", "Eau minérale en bouteille"],
         correct: [0, 1],
-        explanation: "L’eau filtrée combine les avantages de l’eau du robinet (pas de plastique, pas de transport) avec une meilleure qualité gustative."
+        explanation: "L’eau filtrée combine les avantages de l’eau du robinet avec une meilleure qualité gustative."
       },
       {
         question: "Laquelle de ces solutions est la plus économique sur l’année ?",
         options: ["Eau minérale en bouteille", "Eau filtrée avec fontaine", "Eau en bonbonne"],
         correct: [1],
-        explanation: "En entreprise, l’eau filtrée coûte jusqu’à 10x moins cher que l’eau en bouteille."
+        explanation: "L’eau filtrée coûte jusqu’à 10x moins cher que l’eau en bouteille."
       },
       {
         question: "Combien de bouteilles plastiques peut-on éviter par an avec une fontaine filtrante ?",
@@ -39,60 +40,91 @@
         question: "Quel est le principal défaut de l’eau du robinet selon les consommateurs ?",
         options: ["Son goût", "Son prix", "Son accessibilité"],
         correct: [0],
-        explanation: "Les filtres BRITA améliorent le goût sans ajouter d’additifs."
+        explanation: "Les filtres BRITA améliorent le goût sans additifs."
       },
       {
         question: "Combien de litres d’eau faut-il pour produire une bouteille plastique ?",
         options: ["1 L", "3 L", "7 L"],
         correct: [2],
-        explanation: "La production plastique est très gourmande en eau et énergie."
+        explanation: "La production plastique est très gourmande en eau."
       },
       {
         question: "Quel est l’impact environnemental d’une bouteille en plastique ?",
         options: ["Elle se recycle entièrement", "Elle met 450 ans à se décomposer", "Elle est biodégradable"],
         correct: [1],
-        explanation: "Même recyclée, une bouteille ne disparaît jamais vraiment."
+        explanation: "Même recyclée, une bouteille ne disparaît jamais totalement."
       },
       {
         question: "Laquelle de ces solutions consomme le moins de CO₂ ?",
         options: ["Livraison d’eau minérale", "Eau filtrée en fontaine BRITA", "Bonbonne livrée chaque semaine"],
         correct: [1],
-        explanation: "Réduction de l’empreinte carbone : moins de transport, moins d’emballage, zéro jetable."
+        explanation: "Moins de transport, moins d’emballage, zéro jetable."
       },
       {
         question: "Pourquoi les machines à café pro sont-elles plus performantes avec une filtration ?",
         options: ["Moins de calcaire", "Goût du café amélioré", "Durée de vie prolongée", "Toutes les réponses"],
         correct: [3],
-        explanation: "La filtration protège les machines et sublime les arômes du café."
+        explanation: "La filtration protège les machines et améliore les arômes."
       }
     ];
 
+    const colors = ["bg-red-500", "bg-blue-500", "bg-yellow-400", "bg-green-500"];
+
     let currentQuestion = 0;
     let score = 0;
+    let timer;
+    let timeLeft = 20;
+    let answered = false;
 
     const quizEl = document.getElementById("quiz");
     const feedbackEl = document.getElementById("feedback");
     const scoreEl = document.getElementById("score");
     const nextBtn = document.getElementById("nextBtn");
+    const timerEl = document.getElementById("timer");
+
+    function startTimer() {
+      timeLeft = 20;
+      timerEl.textContent = timeLeft;
+      timer = setInterval(() => {
+        timeLeft--;
+        timerEl.textContent = timeLeft;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          if (!answered) {
+            feedbackEl.innerText = "⏰ Temps écoulé !";
+            nextBtn.style.display = "block";
+            answered = true;
+          }
+        }
+      }, 1000);
+    }
 
     function loadQuestion() {
+      answered = false;
       const q = questions[currentQuestion];
       quizEl.innerHTML = `
-        <h2 class="font-semibold">${q.question}</h2>
-        <div class="space-y-2">
+        <h2 class="text-xl font-semibold">${q.question}</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           ${q.options.map((opt, i) => `
-            <button class="w-full bg-gray-100 p-2 rounded hover:bg-gray-200" onclick="selectAnswer(${i})">${opt}</button>
+            <button 
+              class="text-white text-lg font-semibold py-4 px-4 rounded shadow ${colors[i % colors.length]} hover:scale-105 transition duration-200"
+              onclick="selectAnswer(${i})">${opt}</button>
           `).join("")}
         </div>
       `;
       feedbackEl.innerText = "";
       nextBtn.style.display = "none";
+      startTimer();
     }
 
     window.selectAnswer = (i) => {
-      const correct = questions[currentQuestion].correct.includes(i);
-      if (correct) score++;
-      feedbackEl.innerText = (correct ? "✅ Bonne réponse ! " : "❌ Mauvaise réponse. ") + questions[currentQuestion].explanation;
+      if (answered) return;
+      answered = true;
+      clearInterval(timer);
+
+      const isCorrect = questions[currentQuestion].correct.includes(i);
+      if (isCorrect) score++;
+      feedbackEl.innerText = (isCorrect ? "✅ Bonne réponse ! " : "❌ Mauvaise réponse. ") + questions[currentQuestion].explanation;
       nextBtn.style.display = "block";
     };
 
@@ -103,8 +135,9 @@
       } else {
         quizEl.innerHTML = "";
         feedbackEl.innerText = "";
-        scoreEl.innerText = `🎉 Votre score : ${score}/${questions.length}`;
+        scoreEl.innerText = `🎯 Score final : ${score} / ${questions.length}`;
         scoreEl.style.display = "block";
+        timerEl.style.display = "none";
         nextBtn.style.display = "none";
       }
     };
